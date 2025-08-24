@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ghicește Cardul Clash Royale</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background: url("./images/background.jpg") no-repeat center center fixed;
+      background-size: cover;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+      min-height: 100vh;
+    }
+    h1 { color: #6ee7ff; }
+
+    .controls {
+      margin: 20px 0;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      position: relative;
+    }
+    input {
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid #444;
+      background: #0e1534;
+      color: #fff;
+      width: 220px;
+    }
+
+    /* Butoane custom */
+    button.custom-btn {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 50px;
+      background: linear-gradient(135deg, #6ee7ff, #3b82f6);
+      color: #000;
+      font-weight: bold;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      transition: all 0.3s ease;
+    }
+    button.custom-btn:hover {
+      background: linear-gradient(135deg, #3b82f6, #6ee7ff);
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+
+    /* Sugestii dropdown */
+    #suggestions {
+      position: absolute;
+      top: 48px;
+      left: 0;
+      width: 100%;
+      background: rgba(0,0,0,0.7);
+      border-radius: 8px;
+      max-height: 150px;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+    }
+    #suggestions div {
+      padding: 8px 12px;
+      cursor: pointer;
+      color: #fff;
+    }
+    #suggestions div:hover {
+      background: rgba(255,255,255,0.2);
+    }
+
+    /* Tabel */
+    table {
+      border-collapse: collapse;
+      margin-top: 20px;
+      background: rgba(18,24,50,0.9);
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+    th, td {
+      border: 1px solid #333;
+      padding: 12px 16px;
+      text-align: center;
+    }
+
+    /* Poză card */
+    td img {
+      width: 60px;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Corect / greșit */
+    td.ok { background: rgba(20,83,45,0.9); }
+    td.bad { background: rgba(127,29,29,0.9); }
+
+    /* Animație intrare */
+    tr {
+      opacity: 0;
+      transform: translateX(-100%) translateY(-20px);
+      animation: slideIn 0.6s forwards;
+    }
+    @keyframes slideIn {
+      to { opacity: 1; transform: translateX(0) translateY(0); }
+    }
+
+    /* Buton Next */
+    #nextBtn {
+      margin-top: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ghicește Cardul Clash Royale</h1>
+  <div class="controls">
+    <input id="guess" placeholder="Scrie numele cardului..." autocomplete="off">
+    <div id="suggestions"></div>
+    <button id="submitBtn" class="custom-btn">🚀</button>
+  </div>
+
+  <table id="results">
+    <thead>
+      <tr>
+        <th>Imagine</th>
+        <th>Card</th>
+        <th>Elixir</th>
+        <th>Rarity</th>
+        <th>Type</th>
+        <th>Release Year</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <button id="nextBtn" class="custom-btn">Next ▶️</button>
+
+<script>
+const CARDS = [
+
+  { name:"Hog Rider", img:"./images/hog_rider.png", elixir:4, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Electro Spirit", img:"./images/electro_spirit.png", elixir:1, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Electro Wizard", img:"./images/electro_wizard.png", elixir:4, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Executioner", img:"./images/executioner.png", elixir:5, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Firecracker", img:"./images/firecracker.png", elixir:3, rarity:"Rare", type:"Troop", year:2019 },
+  { name:"Fire Spirit", img:"./images/fire_spirit.png", elixir:1, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Fisherman", img:"./images/fisherman.png", elixir:3, rarity:"Legendary", type:"Troop", year:2019 },
+  { name:"Flying Machine", img:"./images/flying_machine.png", elixir:4, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Giant", img:"./images/giant.png", elixir:5, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Giant Skeleton", img:"./images/giant_skeleton.png", elixir:6, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Goblin Brawler", img:"./images/goblin_brawler.png", elixir:4, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Goblin Gang", img:"./images/goblin_gang.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Goblin Machine", img:"./images/goblin_machine.png", elixir:5, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Goblins", img:"./images/goblins.png", elixir:2, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Goblinstein", img:"./images/goblinstein.png", elixir:5, rarity:"Epic", type:"Troop", year:2023 },
+  { name:"Golden Knight", img:"./images/golden_knight.png", elixir:4, rarity:"Legendary", type:"Troop", year:2020 },
+  { name:"Golemite", img:"./images/golemite.png", elixir:null, rarity:"Epic", type:"Troop", year:null },
+  { name:"Guards", img:"./images/guards.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Hunter", img:"./images/hunter.png", elixir:4, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Ice Golem", img:"./images/ice_golem.png", elixir:2, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Ice Spirit", img:"./images/ice_spirit.png", elixir:1, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Ice Wizard", img:"./images/ice_wizard.png", elixir:3, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Inferno Dragon", img:"./images/inferno_dragon.png", elixir:4, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Knight", img:"./images/knight.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Lava Pup", img:"./images/lava_pup.png", elixir:null, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Lumberjack", img:"./images/lumberjack.png", elixir:4, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Magic Archer", img:"./images/magic_archer.png", elixir:4, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Mega Knight", img:"./images/mega_knight.png", elixir:7, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Mega Minion", img:"./images/mega_minion.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Miner", img:"./images/miner.png", elixir:3, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Mini P.E.K.K.A.", img:"./images/mini_pekka.png", elixir:4, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Minion Horde", img:"./images/minion_horde.png", elixir:5, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Minions", img:"./images/minions.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"P.E.K.K.A.", img:"./images/pekka.png", elixir:7, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Prince", img:"./images/prince.png", elixir:5, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Princess", img:"./images/princess.png", elixir:3, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Ram Rider", img:"./images/ram_rider.png", elixir:5, rarity:"Legendary", type:"Troop", year:2018 },
+  { name:"Rascal Boy", img:"./images/rascal_boy.png", elixir:5, rarity:"Rare", type:"Troop", year:2018 },
+  { name:"Rascal Girl", img:"./images/rascal_girl.png", elixir:5, rarity:"Rare", type:"Troop", year:2018 },
+  { name:"Royal Ghost", img:"./images/royal_ghost.png", elixir:3, rarity:"Legendary", type:"Troop", year:2018 },
+  { name:"Royal Giant", img:"./images/royal_giant.png", elixir:6, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Royal Hogs", img:"./images/royal_hogs.png", elixir:5, rarity:"Rare", type:"Troop", year:2018 },
+  { name:"Skeleton Army", img:"./images/skeleton_army.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Skeletons", img:"./images/skeletons.png", elixir:1, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Sparky", img:"./images/sparky.png", elixir:6, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Spear Goblins", img:"./images/spear_goblins.png", elixir:2, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Spirit Empress", img:"./images/spirit_empress.png", elixir:6, rarity:"Champion", type:"Troop", year:2025 },
+  { name:"Three Musketeers", img:"./images/three_musketeers.png", elixir:9, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Valkyrie", img:"./images/valkyrie.png", elixir:4, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Wizard", img:"./images/wizard.png", elixir:5, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Zappies", img:"./images/zappies.png", elixir:4, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Arrows", img:"./images/arrows.png", elixir:3, rarity:"Common", type:"Spell", year:2016 },
+  { name:"Barbarian Barrel", img:"./images/barbarian_barrel.png", elixir:2, rarity:"Rare", type:"Spell", year:2016 },
+  { name:"Earthquake", img:"./images/earthquake.png", elixir:3, rarity:"Rare", type:"Spell", year:2016 },
+  { name:"Fireball", img:"./images/fireball.png", elixir:4, rarity:"Rare", type:"Spell", year:2016 },
+  { name:"Freeze", img:"./images/freeze.png", elixir:4, rarity:"Epic", type:"Spell", year:2016 },
+  { name:"Giant Snowball", img:"./images/giant_snowball.png", elixir:2, rarity:"Common", type:"Spell", year:2016 },
+  { name:"Goblin Curse", img:"./images/goblin_curse.png", elixir:2, rarity:"Epic", type:"Spell", year:2020 },
+  { name:"Lightning", img:"./images/lightning.png", elixir:6, rarity:"Epic", type:"Spell", year:2016 },
+  { name:"Poison", img:"./images/poison.png", elixir:4, rarity:"Epic", type:"Spell", year:2016 },
+  { name:"Rage", img:"./images/rage.png", elixir:2, rarity:"Rare", type:"Spell", year:2016 },
+  { name:"Rocket", img:"./images/rocket.png", elixir:6, rarity:"Epic", type:"Spell", year:2016 },
+  { name:"The Log", img:"./images/the_log.png", elixir:2, rarity:"Legendary", type:"Spell", year:2016 },
+  { name:"Tornado", img:"./images/tornado.png", elixir:3, rarity:"Epic", type:"Spell", year:2016 },
+  { name:"Void", img:"./images/void.png", elixir:3, rarity:"Epic", type:"Spell", year:2023 },
+  { name:"Zap", img:"./images/zap.png", elixir:2, rarity:"Common", type:"Spell", year:2016 },
+  { name:"Bomb Tower", img:"./images/bomb_tower.png", elixir:4, rarity:"Rare", type:"Building", year:2016 },
+  { name:"Cannon", img:"./images/cannon.png", elixir:3, rarity:"Common", type:"Building", year:2016 },
+  { name:"Cannon Cart (broken)", img:"./images/cannon_cart_broken.png", elixir:5, rarity:"Epic", type:"Building", year:2016 },
+  { name:"Inferno Tower", img:"./images/inferno_tower.png", elixir:5, rarity:"Rare", type:"Building", year:2016 },
+  { name:"Mortar", img:"./images/mortar.png", elixir:4, rarity:"Rare", type:"Building", year:2016 },
+  { name:"Tesla", img:"./images/tesla.png", elixir:4, rarity:"Rare", type:"Building", year:2016 },
+  { name:"X-Bow", img:"./images/x-bow.png", elixir:6, rarity:"Epic", type:"Building", year:2016 },
+  { name:"Barbarian Hut", img:"./images/barbarian_hut.png", elixir:6, rarity:"Rare", type:"Passive", year:2016 },
+  { name:"Elixir Collector", img:"./images/elixir_collector.png", elixir:6, rarity:"Rare", type:"Passive", year:2016 },
+  { name:"Tombstone", img:"./images/tombstone.png", elixir:3, rarity:"Common", type:"Passive", year:2016 },
+  { name:"Battle Ram", img:"./images/battle_ram.png", elixir:4, rarity:"Rare", type:"Spawner", year:2017 },
+  { name:"Elixir Golem", img:"./images/elixir_golem.png", elixir:3, rarity:"Epic", type:"Spawner", year:2016 },
+  { name:"Elixir Golemite", img:"./images/elixir_golemite.png", elixir:null, rarity:"Epic", type:"Spawner", year:null },
+  { name:"Furnace", img:"./images/furnace.png", elixir:4, rarity:"Rare", type:"Spawner", year:2016 },
+  { name:"Goblin Barrel", img:"./images/goblin_barrel.png", elixir:3, rarity:"Epic", type:"Spawner", year:2016 },
+  { name:"Goblin Cage", img:"./images/goblin_cage.png", elixir:4, rarity:"Rare", type:"Spawner", year:2016 },
+  { name:"Goblin Drill", img:"./images/goblin_drill.png", elixir:4, rarity:"Epic", type:"Spawner", year:2019 },
+  { name:"Goblin Giant", img:"./images/goblin_giant.png", elixir:6, rarity:"Epic", type:"Spawner", year:2016 },
+  { name:"Goblin Hut", img:"./images/goblin_hut.png", elixir:4, rarity:"Rare", type:"Spawner", year:2016 },
+  { name:"Golem", img:"./images/golem.png", elixir:8, rarity:"Epic", type:"Spawner", year:2016 },
+  { name:"Graveyard", img:"./images/graveyard.png", elixir:5, rarity:"Legendary", type:"Spawner", year:2016 },
+  { name:"Lava Hound", img:"./images/lava_hound.png", elixir:7, rarity:"Legendary", type:"Spawner", year:2016 },
+  { name:"Little Prince", img:"./images/little_prince.png", elixir:6, rarity:"Legendary", type:"Spawner", year:2016 },
+  { name:"Mother Witch", img:"./images/mother_witch.png", elixir:4, rarity:"Epic", type:"Spawner", year:2019 },
+  { name:"Night Witch", img:"./images/night_witch.png", elixir:4, rarity:"Epic", type:"Spawner", year:2016 },
+  { name:"Phoenix Egg", img:"./images/phoenix_egg.png", elixir:null, rarity:"Epic", type:"Spawner", year:null },
+  { name:"Royal Delivery", img:"./images/royal_delivery.png", elixir:3, rarity:"Rare", type:"Spawner", year:2019 },
+  { name:"Skeleton Barrel", img:"./images/skeleton_barrel.png", elixir:3, rarity:"Epic", type:"Spawner", year:2017 },
+  { name:"Skeleton King", img:"./images/skeleton_king.png", elixir:6, rarity:"Champion", type:"Spawner", year:2023 },
+  { name:"Suspicious Bush", img:"./images/suspicious_bush.png", elixir:2, rarity:"Common", type:"Spawner", year:2019 },
+  { name:"Tombstone", img:"./images/tombstone.png", elixir:3, rarity:"Common", type:"Spawner", year:2016 },
+  { name:"Witch", img:"./images/witch.png", elixir:5, rarity:"Epic", type:"Spawner", year:2016 },
+  { name:"Cannoneer", img:"./images/cannoneer.png", elixir:null, rarity:"Legendary", type:"Tower Troop", year:2021 },
+  { name:"Dagger Duchess", img:"./images/dagger_duchess.png", elixir:null, rarity:"Legendary", type:"Tower Troop", year:2021 },
+  { name:"Royal Chef", img:"./images/royal_chef.png", elixir:null, rarity:"Legendary", type:"Tower Troop", year:2021 },
+  { name:"Tower Princess", img:"./images/tower_princess.png", elixir:null, rarity:"Legendary", type:"Tower Troop", year:2021 },
+  { name:"Archers", img:"./images/archers.png", elixir:3, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Archer Queen", img:"./images/archer_queen.png", elixir:5, rarity:"Legendary", type:"Troop", year:2019 },
+  { name:"Baby Dragon", img:"./images/baby_dragon.png", elixir:4, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Balloon", img:"./images/balloon.png", elixir:5, rarity:"Legendary", type:"Troop", year:2016 },
+  { name:"Bandit", img:"./images/bandit.png", elixir:3, rarity:"Legendary", type:"Troop", year:2017 },
+  { name:"Barbarians", img:"./images/barbarians.png", elixir:5, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Bats", img:"./images/bats.png", elixir:2, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Battle Healer", img:"./images/battle_healer.png", elixir:4, rarity:"Epic", type:"Troop", year:2020 },
+  { name:"Berserker", img:"./images/berserker.png", elixir:2, rarity:"Rare", type:"Troop", year:2022 },
+  { name:"Bomber", img:"./images/bomber.png", elixir:2, rarity:"Common", type:"Troop", year:2016 },
+  { name:"Boss Bandit", img:"./images/boss_bandit.png", elixir:6, rarity:"Legendary", type:"Troop", year:2021 },
+  { name:"Bowler", img:"./images/bowler.png", elixir:5, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Bush Goblins", img:"./images/bush_goblins.png", elixir:N/A, rarity:"Common", type:"Troop", year:N/A },
+  { name:"Cannon Cart", img:"./images/cannon_cart.png", elixir:5, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Cursed Hog", img:"./images/cursed_hog.png", elixir:N/A, rarity:"Epic", type:"Troop", year:N/A },
+  { name:"Dark Prince", img:"./images/dark_prince.png", elixir:4, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Dart Goblin", img:"./images/dart_goblin.png", elixir:3, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Elite Barbarians", img:"./images/elite_barbarians.png", elixir:6, rarity:"Rare", type:"Troop", year:2016 },
+  { name:"Electro Dragon", img:"./images/electro_dragon.png", elixir:5, rarity:"Epic", type:"Troop", year:2016 },
+  { name:"Electro Giant", img:"./images/electro_giant.png", elixir:7, rarity:"Epic", type:"Troop", year:2016 }
+
+]
+
+const $ = sel => document.querySelector(sel);
+let target = CARDS[Math.floor(Math.random()*CARDS.length)];
+
+const input = $("#guess");
+const suggestions = $("#suggestions");
+const results = $("#results tbody");
+const nextBtn = $("#nextBtn");
+
+// Populează sugestiile
+input.addEventListener("input", e => {
+  const val = e.target.value.toLowerCase();
+  suggestions.innerHTML = "";
+  if(!val) { suggestions.style.display="none"; return; }
+  const matches = CARDS.filter(c => c.name.toLowerCase().startsWith(val));
+  matches.forEach(c => {
+    const div = document.createElement("div");
+    div.textContent = c.name;
+    div.addEventListener("click", ()=>{
+      input.value = c.name;
+      suggestions.style.display="none";
+    });
+    suggestions.appendChild(div);
+  });
+  suggestions.style.display = matches.length ? "block" : "none";
+});
+document.addEventListener("click", e => {
+  if(!input.contains(e.target) && !suggestions.contains(e.target)) suggestions.style.display="none";
+});
+
+function submitGuess(){
+  const val = input.value.trim();
+  if(!val) return;
+  const guess = CARDS.find(c=>c.name.toLowerCase()===val.toLowerCase());
+  if(!guess) return;
+
+  const row = document.createElement("tr");
+  // poză
+  const imgTd = document.createElement("td");
+  const img = document.createElement("img");
+  img.src = guess.img;
+  imgTd.appendChild(img);
+  row.appendChild(imgTd);
+
+  // restul categorii
+  ["name","elixir","rarity","type","year"].forEach(key=>{
+    const td = document.createElement("td");
+    td.textContent = guess[key];
+    td.className = guess[key] === target[key] ? "ok" : "bad";
+    row.appendChild(td);
+  });
+
+  results.insertBefore(row, results.firstChild);
+
+  if(guess.name === target.name){
+    nextBtn.style.display = "inline-block";
+  }
+  input.value = "";
+  suggestions.style.display = "none";
+}
+
+$("#submitBtn").addEventListener("click", submitGuess);
+input.addEventListener("keydown", e=>{ if(e.key==="Enter") submitGuess(); });
+
+nextBtn.addEventListener("click", ()=>{
+  results.innerHTML = "";
+  target = CARDS[Math.floor(Math.random()*CARDS.length)];
+  nextBtn.style.display = "none";
+});
+</script>
+</body>
+</html>
